@@ -1,10 +1,7 @@
 # dev-portfolio
-A collection of C++ and typescript programs showcasing fundamentals of coding and web devevlopment!
-
-This Repository contains a collection of projects built using C++ and Typescript. Some of the catagories included consist of object oriented programming, data structures and algorithms, and simple web-development.
+A collection of C++, Python and typescript programs showcasing fundamentals of coding and web devevlopment!
 
 Technologies used 
-- Languages - c++, typescript, html, css
+- Languages - c++, typescript, python, html, css
 - Development Tools - Node.js, npm, tsc, Git
-
-- 
+- Kubernetes
