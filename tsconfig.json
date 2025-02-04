@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2015", // Compatibility with modern JavaScript features
+    "module": "nodenext", // Use ES6 module system
+    "lib": ["ES2015", "DOM"], // Include DOM and ES2015 APIs
+    "outDir": "./dist", // Output compiled files to the dist folder
+    "moduleResolution": "nodenext", // Resolve modules like Node.js (helps with undici-types issue)
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Allow interoperability with CommonJS modules
+    "skipLibCheck": true // Skip type checking for library files
+  },
+  "include": ["src/**/*.ts"], // Include TypeScript files in the src folder
+  "exclude": ["node_modules"] // Exclude node_modules folder
+}
