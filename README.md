@@ -1,11 +1,5 @@
 # Chess-Website
 
-<<<<<<< HEAD
-Technologies used
-- Languages - typescript, html, css
-- Development Tools - Node.js, npm, tsc, Git
-- Kubernetes
-=======
 Project Title
 Chess App
 A web-based chess game app built with TypeScript and Kubernetes.
@@ -23,4 +17,4 @@ Frontend: TypeScript, Express, HTML, CSS
 Backend: Node.js, Express.js
 Deployment: Docker, Kubernetes
 Version Control: GitHub
->>>>>>> eddedff (Your commit message)
+
