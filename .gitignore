@@ -1,2 +1,8 @@
+
 node_modules/
 dist/
+.vagrant/
+virtualbox/
+.vscode/
+*.js
+*.map

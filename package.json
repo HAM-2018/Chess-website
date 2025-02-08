@@ -4,8 +4,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && copyfiles -u 1 src/**/*.{html,css} dist",
-    "start": "echo \"Use Live Server in VS Code\"",
+    "build": "tsc && copyfiles -u 1 src/**/*.{html,css,js} dist",
+    "start": "node dist/server.js",
+    "dev": "echo \"Use Live Server in VS Code\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Haden Smith",
@@ -16,5 +17,8 @@
     "copyfiles": "^2.4.1",
     "nodemon": "^3.1.9",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
   }
 }
