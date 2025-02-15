@@ -1,3 +1,4 @@
+import { bestAIPlay } from "./miniMaxAI.js";
 
 let gameOver = false;
 
@@ -56,15 +57,14 @@ export function initializeChessGame(singlePlayer: boolean) {
 
     gameContainer.appendChild(chessBoard);
 
-    function switchTurn(): void {
+    function switchTurn(boardState: (string | null)[][]): void {
         currentTurn = currentTurn === "white" ? "black" : "white";
-        console.log(`🔄 Turn switched. It's now ${currentTurn}'s turn.`);
+        console.log(`Turn switched. It's now ${currentTurn}'s turn.`);
     
         updateStatusBar(`It's ${currentTurn}'s turn.`);
-    
-        // Ensure AI moves when it's Black's turn in single-player mode
-        if (singlePlayer && currentTurn === "black" && !gameOver) {
-            setTimeout(aiTurn, 1000);
+        const isWhiteAI = false;
+        if (singlePlayer && ((isWhiteAI && currentTurn === "white") || (!isWhiteAI && currentTurn === "black"))) {
+            setTimeout(() => aiTurn(boardState, isWhiteAI), 500); // Slight delay for a smoother UI experience
         }
     }
     
@@ -104,7 +104,7 @@ export function initializeChessGame(singlePlayer: boolean) {
             // Validate the move only if moving to a new square
             if (isValidMove(prevRow, prevCol, row, col, boardState)) {
                 movePiece(prevRow, prevCol, row, col);
-                switchTurn();
+                switchTurn(boardState);
                 selectedCell.style.outline = ""; 
                 selectedCell = null;
             } else {
@@ -114,13 +114,13 @@ export function initializeChessGame(singlePlayer: boolean) {
     }
     
 
-    function movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
+     function movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
         const movingPiece = boardState[fromRow][fromCol] ?? "";
     
         //Ensure the piece retains its correct color
         const isWhite = ["♙", "♖", "♘", "♗", "♕", "♔"].includes(movingPiece);
     
-        // Find the HTML elements for the cells
+        // Find the HTML elements
         const fromCell = document.querySelector(`[data-row="${fromRow}"][data-col="${fromCol}"]`) as HTMLElement;
         const toCell = document.querySelector(`[data-row="${toRow}"][data-col="${toCol}"]`) as HTMLElement;
     
@@ -137,55 +137,56 @@ export function initializeChessGame(singlePlayer: boolean) {
         boardState[fromRow][fromCol] = null;
     
         const opponentKingPos = kingPosition(boardState, currentTurn !== "white");
-        if (opponentKingPos) {
-            const [opponentKingRow, opponentKingCol] = opponentKingPos;
-            if (check(boardState, opponentKingRow, opponentKingCol, currentTurn !== "white")) {
-                updateCheckWarning("Check!");
-                if (checkMate({ board: boardState, isWhite: currentTurn !== "white" })) {
-                    updateCheckWarning(`Checkmate! ${currentTurn === "white" ? "Black" : "White"} wins!`);
-                    updateStatusBar("Game Over.");
-                    gameOver = true;
-                }
-            }
+        const whiteKing = kingPosition(boardState, true);
+        const blackKing = kingPosition(boardState, false);
+
+        let whiteKingCheck = false;
+        let blackKingCheck = false;
+
+        if(whiteKing){
+            const [whiteKingRow, whiteKingCol] = whiteKing;
+            whiteKingCheck = check(boardState, whiteKingRow, whiteKingCol, true);
         }
-    }
-    
-    function aiTurn(): void {
-        if (gameOver) return;
-    
-        console.log("🤖 AI is thinking...");
-    
-        let possibleMoves: { fromRow: number, fromCol: number, toRow: number, toCol: number }[] = [];
-    
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                const piece = boardState[row][col];
-                if (piece && isTurnValid(piece) && currentTurn === "black") { // AI plays as black
-                    const moves = generateMoves(row, col, boardState, false);
-                    moves.forEach(([toRow, toCol]) => {
-                        possibleMoves.push({ fromRow: row, fromCol: col, toRow, toCol });
-                    });
-                }
-            }
+        if(blackKing){
+            const [blackKingRow, blackKingCol] = blackKing;
+            blackKingCheck = check(boardState, blackKingRow, blackKingCol, false);
         }
-    
-        console.log(`🤖 AI found ${possibleMoves.length} possible moves.`);
-    
-        if (possibleMoves.length === 0) {
-            console.log("🤖 AI has no valid moves! Skipping turn.");
-            return;
+        if (whiteKingCheck){
+            updateCheckWarning("White is In check!");
+        } else if (blackKingCheck){
+            updateCheckWarning("Black is in check!");
+        } else {
+            updateCheckWarning("");
         }
-    
-        // Pick a random valid move
-        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        if (whiteKingCheck && checkMate({ board: boardState, isWhite: true })) {
+            updateCheckWarning("Checkmate! Black wins!");
+            updateStatusBar("Game Over.");
+            gameOver = true;
+        } else if (blackKingCheck && checkMate({ board: boardState, isWhite: false })) {
+            updateCheckWarning("Checkmate! White wins!");
+            updateStatusBar("Game Over.");
+            gameOver = true;
+        }
         
-        console.log(`🤖 AI moves ${randomMove.fromRow},${randomMove.fromCol} → ${randomMove.toRow},${randomMove.toCol}`);
-        movePiece(randomMove.fromRow, randomMove.fromCol, randomMove.toRow, randomMove.toCol);
-    
-        switchTurn();
     }
+
+    function aiTurn(board: (string | null)[][], isWhiteAI: boolean): void {
+        const depth = 3;
     
+        const bestMove = bestAIPlay(board, depth, isWhiteAI);
     
+        if (bestMove) {
+            const [fromRow, fromCol, toRow, toCol] = bestMove;
+    
+            movePiece(fromRow, fromCol, toRow, toCol); 
+    
+            console.log(`AI moved from (${fromRow}, ${fromCol}) to (${toRow}, ${toCol})`);
+        } else {
+            console.log("AI has no valid moves.");
+        }
+    
+        switchTurn(boardState);
+    }
     
     function updateStatusBar(message: string): void {
         const statusBar = document.getElementById("statusBar");
@@ -198,24 +199,17 @@ export function initializeChessGame(singlePlayer: boolean) {
     function updateCheckWarning(message: string): void {
         const checkWarning = document.getElementById("checkWarning");
         if (!checkWarning) return;
-    
-        console.log("Updating check status bar:", message);
+        console.log("Check status updated:", message);
         checkWarning.textContent = message;
     
         if (!message.includes("Checkmate") && message !== "") {
             setTimeout(() => {
                 if (checkWarning.textContent === message && !gameOver) {
-                    console.log("Clearing check status bar message.");
                     checkWarning.textContent = "";
                 }
             }, 5000);
         }
     }
-    
-    
-    
-    
-    
 
     function isTurnValid(piece: string): boolean {
         const whitePieces = new Set(["♙", "♖", "♘", "♗", "♕", "♔"]);
@@ -286,7 +280,6 @@ export function initializeChessGame(singlePlayer: boolean) {
                 }
             }
         }
-    
         // Undo move after validation
         board[fromRow][fromCol] = board[toRow][toCol];
         board[toRow][toCol] = temp;
@@ -334,8 +327,6 @@ export function initializeChessGame(singlePlayer: boolean) {
         return moves;
     }
     
-    
-
     function validatePawnMove(
         fromRow: number,
         fromCol: number,
@@ -489,7 +480,7 @@ export function initializeChessGame(singlePlayer: boolean) {
         board[fromRow][fromCol] = board[toRow][toCol];
         board[toRow][toCol] = temp;
     
-        return !isInCheck; // Move is valid only if the king is not in check
+        return !isInCheck; 
     }
     
 
@@ -531,7 +522,7 @@ export function initializeChessGame(singlePlayer: boolean) {
     
                 if (piece && !isSameSide(piece, isWhite ? "♔" : "♚")) {
                     if (isValidMove(row, col, kingRow, kingCol, board, true)) {  
-                        console.log(`⚠️ King is under attack by ${piece} at [${row}, ${col}]`);
+                        console.log(` King is under attack by ${piece} at [${row}, ${col}]`);
                         return true;
                     }
                 }
@@ -547,11 +538,10 @@ export function initializeChessGame(singlePlayer: boolean) {
         const kingPos = kingPosition(board, isWhite);
         if (!kingPos) {
             console.error("ERROR: King not found in checkMate()!");
-            return false; // Fail gracefully
+            return false; 
         }
         const [kingRow, kingCol] = kingPos;
     
-        // If the king is NOT in check, return false
         if (!check(board, kingRow, kingCol, isWhite)) {
             console.log("King is NOT in check. Not checkmate.");
             return false;
@@ -580,7 +570,6 @@ export function initializeChessGame(singlePlayer: boolean) {
     
         console.log(" King has no escape moves. Checking if any piece can block check...");
     
-        // Check if ANY piece can block check 
         let hasDefensiveMove = false;
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
@@ -594,19 +583,17 @@ export function initializeChessGame(singlePlayer: boolean) {
                         board[toRow][toCol] = board[row][col];
                         board[row][col] = null;
     
-                        // Recalculate king's position
                         const newKingPos = kingPosition(board, isWhite);
                         if (!newKingPos) throw new Error("King not found after move simulation");
                         const [newKingRow, newKingCol] = newKingPos;
     
                         const isStillInCheck = check(board, newKingRow, newKingCol, isWhite);
     
-                        // Undo the move
                         board[row][col] = board[toRow][toCol];
                         board[toRow][toCol] = temp;
     
                         if (!isStillInCheck) {
-                            console.log(`✅ Defensive move found! Moving ${piece} from [${row}, ${col}] to [${toRow}, ${toCol}]. Not checkmate.`);
+                            console.log(`Defensive move found! Moving ${piece} from [${row}, ${col}] to [${toRow}, ${toCol}]. Not checkmate.`);
                             hasDefensiveMove = true;
                         }
                     }
@@ -622,6 +609,7 @@ export function initializeChessGame(singlePlayer: boolean) {
         return false;
     }
     
+    export {isValidMove, generateMoves,};
     
     
     
