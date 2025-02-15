@@ -54,7 +54,6 @@ export function initializeChessGame(singlePlayer: boolean) {
         }
     }
     
-
     gameContainer.appendChild(chessBoard);
 
     function switchTurn(boardState: (string | null)[][]): void {
@@ -76,10 +75,8 @@ export function initializeChessGame(singlePlayer: boolean) {
         console.log("Cell clicked:", { row, col, piece });
     
         if (!statusBar) {
-            console.error("Status bar not found!");
             return;
         }
-    
         // If no piece is selected, select one
         if (selectedCell === null) {
             if (piece && !isTurnValid(piece)) {
@@ -113,7 +110,6 @@ export function initializeChessGame(singlePlayer: boolean) {
         }
     }
     
-
      function movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
         const movingPiece = boardState[fromRow][fromCol] ?? "";
     
@@ -309,7 +305,6 @@ export function initializeChessGame(singlePlayer: boolean) {
         }
     }
     
-    
     function generateMoves(
         fromRow: number,
         fromCol: number,
@@ -462,13 +457,11 @@ export function initializeChessGame(singlePlayer: boolean) {
         if (rowDiff > 1 || colDiff > 1) {
             return false;
         }
-    
         // Check if the target square is empty or occupied by an opponent
         const target = board[toRow][toCol];
         if (target && isSameSide(board[fromRow][fromCol]!, target)) {
             return false; // Cannot capture a friendly piece
         }
-    
         // Simulate the move and check if it places the king in check
         const temp = board[toRow][toCol];
         board[toRow][toCol] = board[fromRow][fromCol];
@@ -482,8 +475,6 @@ export function initializeChessGame(singlePlayer: boolean) {
     
         return !isInCheck; 
     }
-    
-
     function validateQueenMove (
         fromRow: number,
         fromCol: number,
@@ -533,7 +524,6 @@ export function initializeChessGame(singlePlayer: boolean) {
         return false;
     }
     
-    
     function checkMate({ board, isWhite }: { board: (string | null)[][]; isWhite: boolean; }): boolean {
         const kingPos = kingPosition(board, isWhite);
         if (!kingPos) {
@@ -547,7 +537,7 @@ export function initializeChessGame(singlePlayer: boolean) {
             return false;
         }
     
-        console.log(` King is in check at [${kingRow}, ${kingCol}]. Checking for escape moves...`);
+        console.log(` King is in check at [${kingRow}, ${kingCol}].`);
     
         // Check if the king has any valid escape moves
         const directions = [
@@ -567,9 +557,6 @@ export function initializeChessGame(singlePlayer: boolean) {
                 return false; // King has a way out
             }
         }
-    
-        console.log(" King has no escape moves. Checking if any piece can block check...");
-    
         let hasDefensiveMove = false;
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
@@ -602,7 +589,7 @@ export function initializeChessGame(singlePlayer: boolean) {
         }
     
         if (!hasDefensiveMove) {
-            console.log(" Checkmate detected! No valid moves left.");
+            console.log(" Checkmate!
             return true;
         }
     
